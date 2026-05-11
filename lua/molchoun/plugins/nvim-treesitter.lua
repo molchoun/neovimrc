@@ -1,48 +1,46 @@
-return { -- Highlight, edit, and navigate code
+return {
   'nvim-treesitter/nvim-treesitter',
+  branch = 'main',
   build = ':TSUpdate',
-  opts = {
-    ensure_installed = {
+  config = function()
+    local ts = require 'nvim-treesitter'
+    local local_bin = vim.fn.expand '$HOME/.local/bin'
+    local languages = {
       'bash',
-      'json',
       'diff',
       'html',
+      'json',
       'lua',
       'luadoc',
       'markdown',
+      'python',
       'vim',
       'vimdoc',
-      'python',
-      'yaml'
-    },
-    -- Autoinstall languages that are not installed
-    auto_install = true,
-    highlight = {
-      enable = true,
-      -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-      --  If you are experiencing weird indenting issues, add the language to
-      --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-      additional_vim_regex_highlighting = { 'python' },
-    },
-    indent = { enable = true, disable = { 'ruby', 'python'} },
-    incremental_selection = {
-      enable = true,
-      keymaps = {
-        init_selection = '<C-space>',
-        node_incremental = '<C-space>',
-        scope_incremental = false,
-        node_decremental = '<bs>',
-      },
-    },
-  },
-  config = function(_, opts)
-    -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
+      'yaml',
+    }
 
-    -- Prefer git instead of curl in order to improve connectivity in some environments
-    require('nvim-treesitter.install').prefer_git = true
-    ---@diagnostic disable-next-line: missing-fields
-    require('nvim-treesitter.configs').setup(opts)
+    if not vim.env.PATH:match(vim.pesc(local_bin)) then
+      vim.env.PATH = local_bin .. ':' .. vim.env.PATH
+    end
 
+    ts.setup {
+      install_dir = vim.fn.stdpath 'data' .. '/site',
+    }
+
+    local installed = ts.get_installed()
+    local missing = vim.tbl_filter(function(lang)
+      return not vim.list_contains(installed, lang)
+    end, languages)
+
+    if #missing > 0 then
+      ts.install(missing, { summary = true })
+    end
+
+    vim.api.nvim_create_autocmd('FileType', {
+      pattern = languages,
+      callback = function(args)
+        pcall(vim.treesitter.start, args.buf)
+      end,
+    })
   end,
 }
-

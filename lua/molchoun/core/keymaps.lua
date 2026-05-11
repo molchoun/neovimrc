@@ -35,9 +35,9 @@ map('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 map('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
 -- Center after <C-d>
-map('n', 'J', 'mzJ`z')
-map('n', '<C-d>', '<C-d>zz')
 map('n', '<C-u>', '<C-u>zz')
+map('n', '<C-d>', '<C-d>zz')
+map('n', 'J', 'mzJ`z')
 map('n', 'n', 'nzzzv')
 map('n', 'N', 'Nzzzv')
 
@@ -57,7 +57,17 @@ map('n', '<leader>tp', '<cmd>tabprevious<CR>', { desc = 'Previous tab' })
 -- Ex remap
 map('n', '<leader>pv', vim.cmd.Ex)
 
-map('n', '<C-f>', '<cmd>!tmux neww tmux-sessionizer<CR>')
+map('n', '<C-f>', function()
+  if vim.env.TMUX and vim.env.TMUX ~= '' then
+    vim.fn.jobstart({
+      'tmux',
+      'new-window',
+      vim.fn.expand '$HOME/.local/bin/tmux-sessionizer',
+    }, { detach = true })
+  else
+    vim.notify('tmux-sessionizer mapping requires Neovim running inside tmux', vim.log.levels.WARN)
+  end
+end, { desc = 'tmux sessionizer' })
 
 map('x', '<leader>p', [["_dP]])
 map({ 'n', 'v' }, '<leader>y', [["+y]])
@@ -137,4 +147,3 @@ vim.keymap.set(
   create_py_init,
   { noremap = true, silent = true }
 )
-

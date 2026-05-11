@@ -35,15 +35,18 @@ return {
         parser = require('lint.parser').from_pattern(pattern, groups, severities, { ['source'] = 'mypy' }, { end_col_offset = 0 }),
       }
       lint.linters_by_ft = {
-        markdown = { 'markdownlint' },
-        python = { 'mypy' },
+        css = { 'stylelint' },
+        html = { 'htmlhint' },
+        php = { 'php' },
+        python = { 'ruff' },
+
       }
 
       local lint_augroup = vim.api.nvim_create_augroup('lint', { clear = true })
       vim.api.nvim_create_autocmd({ 'BufEnter', 'BufWritePost', 'InsertLeave', 'BufLeave', 'InsertLeave', 'TextChanged', 'User' }, {
         group = lint_augroup,
         callback = function()
-          require('lint').try_lint()
+          require('lint').try_lint(nil, { ignore_errors = true })
         end,
       })
     end,

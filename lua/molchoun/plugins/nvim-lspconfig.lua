@@ -1,5 +1,6 @@
 return { -- LSP Configuration & Plugins
   'neovim/nvim-lspconfig',
+  event = { 'BufReadPre', 'BufNewFile' },
   dependencies = {
     -- Automatically install LSPs and related tools to stdpath for Neovim
     { 'williamboman/mason.nvim', config = true }, -- NOTE: Must be loaded before dependants
@@ -103,6 +104,10 @@ return { -- LSP Configuration & Plugins
         --
         -- When you move your cursor, the highlights will be cleared (the second autocommand).
         local client = vim.lsp.get_client_by_id(event.data.client_id)
+        if client and client.name == 'pyright' then
+          client.server_capabilities.semanticTokensProvider = nil
+        end
+
         if client and client.server_capabilities.documentHighlightProvider then
           local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
           vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
@@ -157,7 +162,34 @@ return { -- LSP Configuration & Plugins
     local servers = {
       -- clangd = {},
       -- gopls = {},
-      -- pyright = {},
+      pyright = {
+        root_markers = {'.nvim', 'pyproject.toml', 'setup.py', 'setup.cfg', 'requirements.txt', 'Pipfile', 'pyrightconfig.json', '.git'},
+        -- root_dir = require('lspconfig.util').root_pattern('.nvim', 'pyproject.toml', 'setup.py', 'setup.cfg', 'requirements.txt', 'Pipfile', 'pyrightconfig.json', '.git'),
+        settings = {
+          python = {
+            analysis = {
+              autoSearchPaths = true,
+              useLibraryCodeForTypes = true,
+              diagnosticMode = 'openFilesOnly',
+              typeCheckingMode = 'basic',
+              pythonPath = (os.getenv 'VIRTUAL_ENV' or '/usr/bin/python3') .. '/bin/python',
+            },
+          },
+        },
+      },
+
+      ruff = {
+        root_markers = {'.nvim', 'pyproject.toml', 'setup.py', 'setup.cfg', 'requirements.txt', 'Pipfile', '.git'},
+        init_options = {
+          settings = {
+            path = { vim.fn.exepath 'ruff' },
+          },
+        },
+        settings = {},
+      },
+      cssls = {},
+      html = {},
+      intelephense = {},
       -- rust_analyzer = {},
       -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
       --
@@ -196,9 +228,10 @@ return { -- LSP Configuration & Plugins
 
     -- You can add other tools here that you want Mason to install
     -- for you, so that they are available from within Neovim.
-    local ensure_installed = vim.tbl_keys(servers or {})
-    vim.list_extend(ensure_installed, {
-      'stylua', -- Used to format Lua code
+    local ensure_installed = vim.list_extend(vim.tbl_keys(servers or {}), {
+      'htmlhint',
+      'prettierd',
+      'stylelint',
     })
     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -209,24 +242,15 @@ return { -- LSP Configuration & Plugins
           -- This handles overriding only values explicitly passed
           -- by the server configuration above. Useful when disabling
           -- certain features of an LSP (for example, turning off formatting for tsserver)
-          server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-          require('lspconfig')[server_name].setup(server)
-        end,
-      },
-    }
+          if server_name == 'pyright' then
+            local virtual_env = os.getenv 'VIRTUAL_ENV'
+            server.settings.python.analysis.pythonPath = virtual_env and (virtual_env .. '/bin/python') or '/usr/bin/python3'
+          end
 
-    local virtual_env = os.getenv 'VIRTUAL_ENV' or '/usr/bin/python3'
-    require('lspconfig').pyright.setup {
-      settings = {
-        python = {
-          analysis = {
-            autoSearchPaths = true,
-            useLibraryCodeForTypes = true,
-            diagnosticMode = 'openFilesOnly',
-            typeCheckingMode = 'basic',
-            pythonPath = virtual_env .. '/bin/python',
-          },
-        },
+          server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+          vim.lsp.config(server_name, server)
+          vim.lsp.enable(server_name)
+        end,
       },
     }
   end,

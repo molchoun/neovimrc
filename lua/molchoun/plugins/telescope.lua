@@ -1,7 +1,7 @@
 return { -- Fuzzy Finder (files, lsp, etc)
   'nvim-telescope/telescope.nvim',
   event = 'VimEnter',
-  branch = '0.1.x',
+  version = '*',
   dependencies = {
     'nvim-lua/plenary.nvim',
     { -- If encountering errors, see telescope-fzf-native README for installation instructions
@@ -57,6 +57,11 @@ return { -- Fuzzy Finder (files, lsp, etc)
       --
       defaults = {
         path_display = { 'smart' },
+        preview = {
+          treesitter = {
+            enable = false,
+          },
+        },
         mappings = {
           i = {
             ['<C-j>'] = require('telescope.actions').move_selection_next,

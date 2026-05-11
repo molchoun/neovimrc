@@ -4,7 +4,4 @@ return {
   'ThePrimeagen/harpoon',
   'mbbill/undotree',
   'tpope/vim-fugitive',
-  'mfussenegger/nvim-dap-python',
-  { 'github/copilot.vim' },
-  'ThePrimeagen/vim-be-good',
 }

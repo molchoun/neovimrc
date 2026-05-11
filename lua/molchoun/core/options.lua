@@ -3,9 +3,10 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+vim.opt.guicursor = ''
+
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = true
-vim.opt.colorcolumn = '120'
 
 -- Fold settings
 -- Set fold method to 'expr'
@@ -14,9 +15,6 @@ vim.o.foldmethod = 'expr'
 -- Set fold expression to use nvim_treesitter
 vim.o.foldexpr = 'nvim_treesitter#foldexpr()'
 vim.o.foldlevel = 99
-
--- Sleuth settings
-vim.g.sleuth_heuristics = false
 
 -- Tabs and indentation
 vim.opt.expandtab = true
@@ -60,7 +58,7 @@ vim.opt.smartcase = true
 vim.opt.signcolumn = 'number'
 
 -- Decrease update time
-vim.opt.updatetime = 250
+vim.opt.updatetime = 80
 
 -- Decrease mapped sequence wait time
 -- Displays which-key popup sooner
@@ -79,9 +77,6 @@ vim.opt.splitbelow = true
 -- Preview substitutions live, as you type!
 vim.opt.inccommand = 'split'
 
--- Show which line your cursor is on
-vim.opt.cursorline = true
-
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
 
@@ -94,10 +89,8 @@ vim.opt.incsearch = true
 -- Treat a dash (-) as part of a word
 vim.opt.iskeyword:append '-'
 
--- Change diagnostic color
-vim.cmd [[
-    hi DiagnosticVirtualTextError ctermfg=red guifg=red
-    hi DiagnosticVirtualTextWarn ctermfg=yellow guifg=yellow
-    hi DiagnosticVirtualTextInfo ctermfg=blue guifg=blue
-    hi DiagnosticVirtualTextHint ctermfg=yellow guifg=yellow
-]]
+-- Match classic terminal Vim colors instead of Neovim's GUI palette.
+vim.opt.termguicolors = true
+
+-- Use Neovim's built-in default colorscheme.
+vim.cmd.colorscheme 'default'
